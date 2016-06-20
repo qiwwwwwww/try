@@ -16,7 +16,6 @@ var app = express();
 
 app.set('port',process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));  
-app.set('view engine', 'jade'); 
 
 // parse application/json
 app.use(bodyParser.json());                        
@@ -103,7 +102,7 @@ app.get('/:collection', function(req, res) { //A
  
               if (req.accepts('html')) { //E 
  
-                  res.render('data',{objects: objs, collection: req.params.collection}); //F 
+                  res.send({objects: objs, collection: req.params.collection}); //F 
  
               } else { 
  
@@ -253,7 +252,7 @@ app.delete('/:collection/:entity', function(req, res) { //A
 
 
 app.use(function (req,res) { //1 
-  res.render('404', {url:req.url}); //2 
+  res.send({url:req.url}); //2 
 }); 
 
 http.createServer(app).listen(app.get('port'), function(){ 
