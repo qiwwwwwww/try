@@ -1,11 +1,16 @@
 //1 
-var http = require('http'); 
-    express = require('express');
-    bodyParser = require('body-parser');
-    path = require('path');
+var http = require('http'),
+    express = require('express'),
+    bodyParser = require('body-parser'),
+    path = require('path'),
     MongoClient = require('mongodb').MongoClient, 
 	  Server = require('mongodb').Server, 
  	  CollectionDriver = require('./collectionDriver').CollectionDriver; 
+    var mongo = require('mongodb');
+    var BSON = require('bson').BSONPure;
+    var Grid = require('gridfs-stream');
+    var gfs;
+
 
 var app = express();
 
@@ -23,7 +28,6 @@ var mongoPort = 27017;
 var url = 'mongodb://localhost:27017/cheese'
 var collectionDriver; 
  
- 
 var mongoClient = new MongoClient(new Server(mongoHost, mongoPort)); //B 
  
 mongoClient.connect(url, function(err, mongoClient) { //C 
@@ -39,10 +43,52 @@ mongoClient.connect(url, function(err, mongoClient) { //C
   var db = mongoClient.db("cheese");  //E 
  
   collectionDriver = new CollectionDriver(db); //F 
- 
+  // gfs =Grid(db, mongo);
+  gfs = Grid(db, mongo);
+
 }); 
 
+
 app.use(express.static(path.join(__dirname, 'public'))); 
+
+
+// app.get('/:fileName',function(req, res, next){
+//   var options = {filename: req.param('fileName')};
+//   gfs.files.find(options).toArray(function(err, files) {
+//     if(err) {
+//       console.error(err);
+//       return res.send(404);
+//     }
+//     var file=files[0];
+//     var total=file.length;
+//     if (req.headers['range']) {
+//           res.statusCode = 206;
+//           var range = req.headers.range;
+//           var parts = range.replace(/bytes=/, "").split("-");
+//           var partialstart = parts[0];
+//           var partialend = parts[1];
+
+//           var start = parseInt(partialstart, 10);
+//           var end = partialend ? parseInt(partialend, 10) : total - 1;
+//           var chunksize = (end - start) + 1;
+
+//           // res.set("Content-Range", "bytes " + start + "-" + end + "/" + total);
+//           // res.set("Accept-Ranges", "bytes");
+//           // res.set("Content-Length", total);
+//           // res.set("Content-Type", "video/webm");
+
+//           var readstream = gfs.createReadStream({"_id": file._id, range: {startPos: start, endPos: end}});
+//           readstream.pipe(res);
+//   } else {
+//           res.statusCode = 200;
+//           res.set("Content-Length", total);
+//           res.set("Content-Type", "video/webm");
+//           var readstream = gfs.createReadStream({"_id": file._id});
+//           readstream.pipe(res);
+//   }
+//    }); 
+//   });
+
 
 
 app.get('/:collection', function(req, res) { //A 
@@ -73,7 +119,40 @@ app.get('/:collection', function(req, res) { //A
  
 }); 
  
- 
+ app.get('/files/:id', function(req, res, next){
+  
+  var params = req.params;
+
+  var readstream = gfs.createReadStream({
+    '_id': new BSON.ObjectID(req.params.id)
+  });
+
+  req.on('error', function(err){
+    res.send(500, err);
+  });
+  readstream.on('error', function(err){
+    res.send(500, err);
+
+  });
+  readstream.pipe(res);
+// gfs.exist({ "_id": req.params.fileId }, function(err, found) {
+//     if (err) {
+//       handleError(err); 
+//       return;
+//     }
+
+//     if (!found) {
+//       res.send('Error on the database looking for the file.')
+//       return;
+//     }
+
+//     // We only get here if the file actually exists, so pipe it to the response
+//     gfs.createReadStream({ "_id": req.params.fileId }).pipe(res);
+// });
+
+});
+
+
 app.get('/:collection/:entity', function(req, res) { //I 
  
    var params = req.params; 
