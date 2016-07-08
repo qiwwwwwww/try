@@ -6,10 +6,12 @@ var http = require('http'),
     MongoClient = require('mongodb').MongoClient, 
 	  Server = require('mongodb').Server, 
  	  CollectionDriver = require('./collectionDriver').CollectionDriver; 
-    var mongo = require('mongodb');
-    var BSON = require('bson').BSONPure;
-    var Grid = require('gridfs-stream');
-    var gfs;
+
+// for gridfs
+var mongo = require('mongodb');
+var BSON = require('bson').BSONPure;
+var Grid = require('gridfs-stream');
+var gfs;
 
 
 var app = express();
@@ -20,11 +22,10 @@ app.set('views', path.join(__dirname, 'views'));
 // parse application/json
 app.use(bodyParser.json());                        
 
-// parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 var mongoHost = 'localHost'; //A 
 var mongoPort = 27017;  
-var url = 'mongodb://localhost:27017/cheese'
+var url = 'mongodb://localhost:27017/pancake'
 var collectionDriver; 
  
 var mongoClient = new MongoClient(new Server(mongoHost, mongoPort)); //B 
@@ -33,16 +34,15 @@ mongoClient.connect(url, function(err, mongoClient) { //C
  
   if (!mongoClient) { 
  
-      console.error("Error! Exiting... Must start MongoDB first"); 
+      console.error("Error! Please start MongoDB first"); 
  
       process.exit(1); //D 
  
   } 
  
-  var db = mongoClient.db("cheese");  //E 
+  var db = mongoClient.db("pancake");  //E 
  
   collectionDriver = new CollectionDriver(db); //F 
-  // gfs =Grid(db, mongo);
   gfs = Grid(db, mongo);
 
 }); 
@@ -74,7 +74,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //           // res.set("Content-Range", "bytes " + start + "-" + end + "/" + total);
 //           // res.set("Accept-Ranges", "bytes");
 //           // res.set("Content-Length", total);
-//           // res.set("Content-Type", "video/webm");
+//           // res.set("Content-Type", "application/json");
 
 //           var readstream = gfs.createReadStream({"_id": file._id, range: {startPos: start, endPos: end}});
 //           readstream.pipe(res);
@@ -118,6 +118,7 @@ app.get('/:collection', function(req, res) { //A
  
 }); 
  
+ // for gridfs
  app.get('/files/:id', function(req, res, next){
   
   var params = req.params;
@@ -125,6 +126,17 @@ app.get('/:collection', function(req, res) { //A
   var readstream = gfs.createReadStream({
     '_id': new BSON.ObjectID(req.params.id)
   });
+
+gfs.files.find({'_id': new BSON.ObjectID(req.params.id)}).toArray(function(err, files){
+  if(err){
+    console.error(err);
+    return res.send(404);
+  }
+  var file=files[0];
+  res.set('Content-Type', file.contentTypes);
+  res.set('Content-disposition', 'attachment; filename=' + file.filename);
+  
+ })
 
   req.on('error', function(err){
     res.send(500, err);
@@ -178,77 +190,77 @@ app.get('/:collection/:entity', function(req, res) { //I
  
 }); 
 
-app.post('/:collection', function(req, res) { //A 
+// app.post('/:collection', function(req, res) { //A 
  
-    var object = req.body; 
+//     var object = req.body; 
  
-    var collection = req.params.collection; 
+//     var collection = req.params.collection; 
  
-    collectionDriver.save(collection, object, function(err,docs) { 
+//     collectionDriver.save(collection, object, function(err,docs) { 
  
-          if (err) { res.send(400, err); }  
+//           if (err) { res.send(400, err); }  
  
-          else { res.send(201, docs); } //B 
+//           else { res.send(201, docs); } //B 
  
-     }); 
+//      }); 
  
-}); 
+// }); 
 
-app.put('/:collection/:entity', function(req, res) { //A 
+// app.put('/:collection/:entity', function(req, res) { //A 
  
-    var params = req.params; 
+//     var params = req.params; 
  
-    var entity = params.entity; 
+//     var entity = params.entity; 
  
-    var collection = params.collection; 
+//     var collection = params.collection; 
  
-    if (entity) { 
+//     if (entity) { 
  
-       collectionDriver.update(collection, req.body, entity, function(error, objs) { //B 
+//        collectionDriver.update(collection, req.body, entity, function(error, objs) { //B 
  
-          if (error) { res.send(400, error); } 
+//           if (error) { res.send(400, error); } 
  
-          else { res.send(200, objs); } //C 
+//           else { res.send(200, objs); } //C 
  
-       }); 
+//        }); 
  
-   } else { 
+//    } else { 
  
-       var error = { "message" : "Cannot PUT a whole collection" }; 
+//        var error = { "message" : "Cannot PUT a whole collection" }; 
  
-       res.send(400, error); 
+//        res.send(400, error); 
  
-   } 
+//    } 
  
-}); 
+// }); 
 
-app.delete('/:collection/:entity', function(req, res) { //A 
+// app.delete('/:collection/:entity', function(req, res) { //A 
  
-    var params = req.params; 
+//     var params = req.params; 
  
-    var entity = params.entity; 
+//     var entity = params.entity; 
  
-    var collection = params.collection; 
+//     var collection = params.collection; 
  
-    if (entity) { 
+//     if (entity) { 
  
-       collectionDriver.delete(collection, entity, function(error, objs) { //B 
+//        collectionDriver.delete(collection, entity, function(error, objs) { //B 
  
-          if (error) { res.send(400, error); } 
+//           if (error) { res.send(400, error); } 
  
-          else { res.send(200, objs); } //C 200 b/c includes the original doc 
+//           else { res.send(200, objs); } //C 200 b/c includes the original doc 
  
-       }); 
+//        }); 
  
-   } else { 
+//    } else { 
  
-       var error = { "message" : "Cannot DELETE a whole collection" }; 
+//        var error = { "message" : "Cannot DELETE a whole collection" }; 
  
-       res.send(400, error); 
+//        res.send(400, error); 
  
-   } 
+//    } 
  
-}); 
+// }); 
 
 
 app.use(function (req,res) { //1 
