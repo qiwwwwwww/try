@@ -17,6 +17,7 @@ CollectionDriver.prototype.getCollection = function(collectionName, callback) {
  
 };
 
+
 CollectionDriver.prototype.findAll = function(collectionName, callback) { 
  
     this.getCollection(collectionName, function(error, the_collection) { //A 
@@ -38,6 +39,42 @@ CollectionDriver.prototype.findAll = function(collectionName, callback) {
     }); 
  
 }; 
+
+CollectionDriver.prototype.getCategory = function(collectionName, categoryName, callback) {
+  
+  this.getCollection(collectionName, function(error, the_collection){
+    if(error) callback(error);
+    else{
+      the_collection.find({'category':categoryName}).toArray(function(error,doc){
+
+          if (error) callback(error); 
+
+          else callback(null, doc); 
+      
+      });
+    }
+
+  });
+};
+
+
+
+CollectionDriver.prototype.getFilename = function(collectionName, filename, callback) {
+  
+  this.getCollection(collectionName, function(error, the_collection){
+    if(error) callback(error);
+    else{
+      the_collection.find({'title':filename}).toArray(function(error,doc){
+
+          if (error) callback(error); 
+
+          else callback(null, doc); 
+      
+      });
+    }
+
+  });
+};
 
 CollectionDriver.prototype.get = function(collectionName, id, callback) { //A 
  
