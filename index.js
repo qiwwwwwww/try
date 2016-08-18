@@ -95,7 +95,7 @@ gfs.files.find({'_id': new BSON.ObjectID(req.params.id)}).toArray(function(err, 
   }
   var file=files[0];
   res.set('Content-disposition', 'attachment; filename=' + file.filename);
-  res.set('Content-Type', file.contentTypes);
+  res.set('Content-Type', 'application/vnd.android.package-archive');
 
 
   
@@ -155,9 +155,9 @@ app.get('/category/:collection/:entity', function(req, res) { //I
  
        collectionDriver.getCategory(collection, entity, function(error, objs) { //J 
  
-          if (error) { res.send(400, error); } 
+          if (error) { res.send(400, {'category':error}); } 
  
-          else { res.send(200, objs); } //K 
+          else { res.send(200, {'category':objs}); } //K 
  
        }); 
  
@@ -178,12 +178,13 @@ app.get('/filename/:collection/:entity', function(req, res) { //I
    var collection = params.collection; 
  
    if (entity) { 
- 
+    
+        entity= new RegExp(entity,'i');
        collectionDriver.getFilename(collection, entity, function(error, objs) { //J 
  
-          if (error) { res.send(400, error); } 
+          if (error) { res.send(400,{'filename': error}); } 
  
-          else { res.send(200, objs); } //K 
+          else { res.send(200, {'filename':objs}); } //K 
  
        }); 
  
@@ -196,86 +197,83 @@ app.get('/filename/:collection/:entity', function(req, res) { //I
 }); 
 
 
+app.post('/:collection', function(req, res) { //A 
+ 
+    var object = req.body; 
+ 
+    var collection = req.params.collection; 
+ 
+    collectionDriver.save(collection, object, function(err,docs) { 
+ 
+          if (err) { res.send(400, err); }  
+ 
+          else { res.send(201, docs); } //B 
+ 
+     }); 
+ 
+}); 
 
+app.put('/:collection/:entity', function(req, res) { //A 
+ 
+    var params = req.params; 
+ 
+    var entity = params.entity; 
+ 
+    var collection = params.collection; 
+ 
+    if (entity) { 
+ 
+       collectionDriver.update(collection, req.body, entity, function(error, objs) { //B 
+ 
+          if (error) { res.send(400, error); } 
+ 
+          else { res.send(200, objs); } //C 
+ 
+       }); 
+ 
+   } else { 
+ 
+       var error = { "message" : "Cannot PUT a whole collection" }; 
+ 
+       res.send(400, error); 
+ 
+   } 
+ 
+}); 
 
-
-// app.post('/:collection', function(req, res) { //A 
+app.delete('/:collection/:entity', function(req, res) { //A 
  
-//     var object = req.body; 
+    var params = req.params; 
  
-//     var collection = req.params.collection; 
+    var entity = params.entity; 
  
-//     collectionDriver.save(collection, object, function(err,docs) { 
+    var collection = params.collection; 
  
-//           if (err) { res.send(400, err); }  
+    if (entity) { 
  
-//           else { res.send(201, docs); } //B 
+       collectionDriver.delete(collection, entity, function(error, objs) { //B 
  
-//      }); 
+          if (error) { res.send(400, error); } 
  
-// }); 
-
-// app.put('/:collection/:entity', function(req, res) { //A 
+          else { res.send(200, objs); } //C 200 b/c includes the original doc 
  
-//     var params = req.params; 
+       }); 
  
-//     var entity = params.entity; 
+   } else { 
  
-//     var collection = params.collection; 
+       var error = { "message" : "Cannot DELETE a whole collection" }; 
  
-//     if (entity) { 
+       res.send(400, error); 
  
-//        collectionDriver.update(collection, req.body, entity, function(error, objs) { //B 
+   } 
  
-//           if (error) { res.send(400, error); } 
- 
-//           else { res.send(200, objs); } //C 
- 
-//        }); 
- 
-//    } else { 
- 
-//        var error = { "message" : "Cannot PUT a whole collection" }; 
- 
-//        res.send(400, error); 
- 
-//    } 
- 
-// }); 
-
-// app.delete('/:collection/:entity', function(req, res) { //A 
- 
-//     var params = req.params; 
- 
-//     var entity = params.entity; 
- 
-//     var collection = params.collection; 
- 
-//     if (entity) { 
- 
-//        collectionDriver.delete(collection, entity, function(error, objs) { //B 
- 
-//           if (error) { res.send(400, error); } 
- 
-//           else { res.send(200, objs); } //C 200 b/c includes the original doc 
- 
-//        }); 
- 
-//    } else { 
- 
-//        var error = { "message" : "Cannot DELETE a whole collection" }; 
- 
-//        res.send(400, error); 
- 
-//    } 
- 
-// }); 
+}); 
 
 
 app.use(function (req,res) { //1 
   res.send({url:req.url}); //2 
 }); 
 
-http.createServer(app).listen(app.get('port'), function(){ 
+http.createServer(app).listen(app.get('port'), '0.0.0.0', function(){ 
 console.log('Express server listening on port ' + app.get('port'));  
 }); 

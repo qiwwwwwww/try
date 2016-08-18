@@ -102,73 +102,73 @@ CollectionDriver.prototype.get = function(collectionName, id, callback) { //A
  
 }; 
 
-// CollectionDriver.prototype.save = function(collectionName, obj, callback) { 
+CollectionDriver.prototype.save = function(collectionName, obj, callback) { 
  
-//     this.getCollection(collectionName, function(error, the_collection) { //A 
+    this.getCollection(collectionName, function(error, the_collection) { //A 
  
-//       if(error) callback(error) 
+      if(error) callback(error) 
  
-//       else { 
+      else { 
  
-//         obj.created_at = new Date(); //B 
+        obj.created_at = new Date(); //B 
  
-//         the_collection.insert(obj, function() { //C 
+        the_collection.insert(obj, function() { //C 
  
-//           callback(null, obj); 
+          callback(null, obj); 
  
-//         }); 
+        }); 
  
-//       } 
+      } 
  
-//     }); 
+    }); 
  
-// }; 
+}; 
 
-// CollectionDriver.prototype.update = function(collectionName, obj, entityId, callback) { 
+CollectionDriver.prototype.update = function(collectionName, obj, entityId, callback) { 
  
-//     this.getCollection(collectionName, function(error, the_collection) { 
+    this.getCollection(collectionName, function(error, the_collection) { 
  
-//         if (error) callback(error); 
+        if (error) callback(error); 
  
-//         else { 
+        else { 
  
-//             obj._id = ObjectID(entityId); //A convert to a real obj id 
+            obj._id = ObjectID(entityId); //A convert to a real obj id 
  
-//             obj.updated_at = new Date(); //B 
+            obj.updated_at = new Date(); //B 
  
-//             the_collection.save(obj, function(error,doc) { //C 
+            the_collection.save(obj, function(error,doc) { //C 
  
-//                 if (error) callback(error); 
+                if (error) callback(error); 
  
-//                 else callback(null, obj); 
+                else callback(null, obj); 
  
-//             }); 
+            }); 
  
-//         } 
+        } 
  
-//     }); 
+    }); 
  
-// };
+};
 
-// CollectionDriver.prototype.delete = function(collectionName, entityId, callback) { 
+CollectionDriver.prototype.delete = function(collectionName, entityId, callback) { 
  
-//     this.getCollection(collectionName, function(error, the_collection) { //A 
+    this.getCollection(collectionName, function(error, the_collection) { //A 
  
-//         if (error) callback(error); 
+        if (error) callback(error); 
  
-//         else { 
+        else { 
  
-//             the_collection.remove({'_id':ObjectID(entityId)}, function(error,doc) { //B 
+            the_collection.remove({'_id':ObjectID(entityId)}, function(error,doc) { //B 
  
-//                 if (error) callback(error); 
+                if (error) callback(error); 
  
-//                 else callback(null, doc); 
+                else callback(null, doc); 
  
-//             }); 
+            }); 
  
-//         } 
+        } 
  
-//     }); 
+    }); 
  
-// };
+};
 exports.CollectionDriver = CollectionDriver; 
