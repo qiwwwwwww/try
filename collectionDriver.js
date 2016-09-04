@@ -76,6 +76,61 @@ CollectionDriver.prototype.getFilename = function(collectionName, filename, call
   });
 };
 
+// CollectionDriver.prototype.getStar = function(collectionName, appTitle, callback) {
+  
+//   this.getCollection(collectionName, function(error, the_collection){
+//     if(error) callback(error);
+//     else{
+//       the_collection.findOne({'_id':ObjectID("57cb77432f1c6721172c267b"), 'star._id':appTitle}, function(error,doc){
+
+//           if (error) callback(error); 
+
+//           else callback(null, doc); 
+      
+//       });
+//     }
+
+//   });
+// };
+
+CollectionDriver.prototype.getappTitle = function(collectionName, appTitle, callback) {
+  
+  this.getCollection(collectionName, function(error, the_collection){
+    if(error) callback(error);
+    else{
+      the_collection.find({'appTitle': appTitle}).toArray(function(error,doc){
+
+          if (error) callback(error); 
+
+          else callback(null, doc); 
+      
+      });
+    }
+
+  });
+};
+
+CollectionDriver.prototype.getAveStar = function(collectionName, callback) {
+  
+  this.getCollection(collectionName, function(error, the_collection){
+    if(error) callback(error);
+    else{
+      the_collection.aggregate(
+        [
+          { $group:{"_id":"$appTitle","avgStar":{$avg:"$star"}}}
+          ]).toArray(function(error,doc){
+    
+                if (error) callback(error); 
+ 
+                else callback(null, doc);   
+      });
+
+
+ 
+    }
+
+  });
+};
 CollectionDriver.prototype.get = function(collectionName, id, callback) { //A 
  
     this.getCollection(collectionName, function(error, the_collection) { 

@@ -27,7 +27,7 @@ var mongoHost = 'localHost'; //A
 var mongoPort = 27017;  
 var url = 'mongodb://localhost:27017/pancake'
 var collectionDriver; 
- 
+var db; 
 var mongoClient = new MongoClient(new Server(mongoHost, mongoPort)); //B 
  
 mongoClient.connect(url, function(err, mongoClient) { //C 
@@ -40,7 +40,7 @@ mongoClient.connect(url, function(err, mongoClient) { //C
  
   } 
  
-  var db = mongoClient.db("pancake");  //E 
+   db = mongoClient.db("pancake");  //E 
  
   collectionDriver = new CollectionDriver(db); //F 
   gfs = Grid(db, mongo);
@@ -196,6 +196,67 @@ app.get('/filename/:collection/:entity', function(req, res) { //I
  
 }); 
 
+app.get('/comment/:collection/:entity', function(req, res) { //I 
+ 
+   var params = req.params; 
+ 
+   var entity = params.entity; 
+ 
+   var collection = params.collection; 
+ 
+   if (entity) { 
+    
+       collectionDriver.getappTitle(collection, entity, function(error, objs) { //J 
+ 
+          if (error) { res.send(400,{'appTitle': error}); } 
+ 
+          else { res.send(200, {'appTitle':objs}); } //K 
+ 
+       }); 
+ 
+   } else { 
+ 
+      res.send(400, {error: 'bad url', url: req.url}); 
+ 
+   } 
+ 
+}); 
+
+app.get('/star/:collection/:entity', function(req, res) { //I 
+ 
+   var params = req.params; 
+
+   var entity = params.entity; 
+
+   var collection = params.collection; 
+
+   var starCollection = db.collection("star");
+
+   if (entity) { 
+    
+       collectionDriver.getAveStar(collection,function(error, objs) { //J 
+ 
+          if (error) { res.send(400,{'stars': error}); } 
+ 
+          else { 
+            for(i in objs){
+              if(objs[i]._id == entity){
+                // console.log(objs[i].avgStar); 
+                res.send(200, {'starCount':objs[i].avgStar}); 
+
+              }
+            }            
+        
+           }
+       }); 
+ 
+   } else { 
+ 
+      res.send(400, {error: 'bad url', url: req.url}); 
+ 
+   } 
+ 
+}); 
 
 app.post('/:collection', function(req, res) { //A 
  
